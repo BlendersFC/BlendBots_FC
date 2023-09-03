@@ -655,7 +655,6 @@ int main(int argc, char **argv)
       }
 
     }else{
-
       std::cout  << "Quieto -_-" << std::endl;
       //Detenerse
       ros::Duration(0.1).sleep();
@@ -673,8 +672,85 @@ int main(int argc, char **argv)
       write_msg.position.push_back(posiciones2[ult_pos][5] - rest_inc);
       write_joint_pub.publish(write_msg);
       ros::Duration(0.1).sleep();
-      
+
+      for (int i=0; i<4; i++){
+        std::cout  << "Busco Derechaaa:" << std::endl;
+        //Levantar pie derecho 
+        ros::Duration(0.1).sleep();
+        write_msg.name.push_back("r_ank_pitch");
+        write_msg.position.push_back(-0.7091);
+        write_msg.name.push_back("r_knee");
+        write_msg.position.push_back(-1.4131);
+        write_msg.name.push_back("r_hip_pitch");
+        write_msg.position.push_back(0.7091 + rest_inc_giro);
+        write_msg.name.push_back("r_hip_yaw");
+        write_msg.position.push_back(0.1746*1.5);
+        write_msg.name.push_back("l_hip_yaw");
+        write_msg.position.push_back(-0.1746*1.5);
+
+        write_msg.name.push_back("l_hip_roll");
+        write_msg.position.push_back(-0.0873);
+        write_msg.name.push_back("r_hip_roll");
+        write_msg.position.push_back(0.0873);
+        write_msg.name.push_back("l_ank_roll");
+        write_msg.position.push_back(-0.0873);
+        write_msg.name.push_back("r_ank_roll");
+        write_msg.position.push_back(0.0873);
+        write_joint_pub.publish(write_msg);
+
+        //Bajar pie derecho
+        ros::Duration(0.1).sleep();
+        write_msg.name.push_back("r_ank_pitch");
+        write_msg.position.push_back(posiciones2[ult_pos][0]);
+        write_msg.name.push_back("r_knee");
+        write_msg.position.push_back(posiciones2[ult_pos][1]);
+        write_msg.name.push_back("r_hip_pitch");
+        write_msg.position.push_back(posiciones2[ult_pos][2] + rest_inc_giro);
+        write_joint_pub.publish(write_msg);
+        
+        //Levantar pie izquierdo
+        ros::Duration(0.1).sleep();
+        write_msg.name.push_back("l_ank_pitch");
+        write_msg.position.push_back(0.7091);
+        write_msg.name.push_back("l_knee");
+        write_msg.position.push_back(1.4131);
+        write_msg.name.push_back("l_hip_pitch");
+        write_msg.position.push_back(-0.7091 - rest_inc_giro);
+        write_msg.name.push_back("r_hip_yaw");
+        write_msg.position.push_back(0);
+        write_msg.name.push_back("l_hip_yaw");
+        write_msg.position.push_back(0);
+        write_joint_pub.publish(write_msg);
+        
+        //Bajar pie izquierdo
+        ros::Duration(0.1).sleep();
+        write_msg.name.push_back("l_ank_pitch");
+        write_msg.position.push_back(posiciones2[ult_pos][3]);
+        write_msg.name.push_back("l_knee");
+        write_msg.position.push_back(posiciones2[ult_pos][4]);
+        write_msg.name.push_back("l_hip_pitch");
+        write_msg.position.push_back(posiciones2[ult_pos][5] - rest_inc_giro);
+        write_joint_pub.publish(write_msg); 
     }
+
+    std::cout  << "Quieto -_-" << std::endl;
+      //Detenerse
+      ros::Duration(0.1).sleep();
+      write_msg.name.push_back("r_ank_pitch");
+      write_msg.position.push_back(posiciones2[ult_pos][0]);
+      write_msg.name.push_back("r_knee");
+      write_msg.position.push_back(posiciones2[ult_pos][1]);
+      write_msg.name.push_back("r_hip_pitch");
+      write_msg.position.push_back(posiciones2[ult_pos][2] + rest_inc);
+      write_msg.name.push_back("l_ank_pitch");
+      write_msg.position.push_back(posiciones2[ult_pos][3]);
+      write_msg.name.push_back("l_knee");
+      write_msg.position.push_back(posiciones2[ult_pos][4]);
+      write_msg.name.push_back("l_hip_pitch");
+      write_msg.position.push_back(posiciones2[ult_pos][5] - rest_inc);
+      write_joint_pub.publish(write_msg);
+      ros::Duration(0.1).sleep();
+
   }
   return 0;
 }
