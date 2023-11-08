@@ -12,10 +12,8 @@ print('Running')
 cap = cv2.VideoCapture(0)
 
 # Load model 
-# model = YOLO("soccerballs1.pt")
-# model = YOLO("soccerballs2.pt")
-# model = YOLO("soccerballs3.pt")
-model = YOLO("soccerballs4.pt")
+
+model = YOLO("soccerballsnano.pt")
 
 # object classes
 classNames = ["ball"]
