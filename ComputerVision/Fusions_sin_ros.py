@@ -36,7 +36,7 @@ def line_elimination(frame):
             y1 = int(y0 + 1000 * (a))
             x2 = int(x0 - 1000 * (-b))
             y2 = int(y0 - 1000 * (a))
-            cv2.line(frame, (x1, y1), (x2, y2), (0, 0, 0), 17)
+            cv2.line(frame, (x1, y1), (x2, y2), (32, 112, 16), 17)
 
     ####3GREEN DETECTION #####
     hsv = cv2.inRange(hsv_frame, green_lower, green_upper)
@@ -109,7 +109,7 @@ def find_light_interest_regions(image, rows, cols, num_regions, top_border):
     top_indices = np.argsort(concentrations)[-num_regions:]
 
       # Display the top regions with rectangles
-    display_top_regions(image, rows, cols, top_indices, top_border)
+    # display_top_regions(image, rows, cols, top_indices, top_border)
 
     return top_indices, [image_cells[i] for i in top_indices]
 
@@ -179,8 +179,8 @@ def main():
     cap = cv2.VideoCapture(0)
 
     # Number of rows and columns to divide the image into
-    num_rows = 6
-    num_cols = 6
+    num_rows = 10
+    num_cols = 10
 
     # Number of top regions to select
     num_top_regions = 12
@@ -202,12 +202,16 @@ def main():
         # Find the top N regions with the highest light pixel concentration, discarding the part above the top border
         top_indices, top_regions = find_light_interest_regions(frame, num_rows, num_cols, num_top_regions, top_border)
 
+        cv2.imshow("Before contours", frame)
+
         # Calculate the center of the goal posts
         goal_centers = []
         for index, region in zip(top_indices, top_regions):
             gray_region = cv2.cvtColor(region, cv2.COLOR_BGR2GRAY)
             _, binary_mask = cv2.threshold(gray_region, 150, 255, cv2.THRESH_BINARY)
             contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            
 
             # Draw the contours on the original image with correct offset
             draw_contours(frame, contours, index, num_cols, num_rows, top_border)
