@@ -6,7 +6,7 @@ import cv2
 #cap = cv2.VideoCapture('C:/Users/vicen/Downloads/WIN_20231208_15_16_32_Pro.mp4')
 cap = cv2.VideoCapture('C:/Users/vicen/Downloads/WIN_20231117_11_36_57_Pro (1).mp4')
 
-pelota_clas = cv2.CascadeClassifier('C:/Users/vicen/Documents/Git/BlendBots_FC/ComputerVision/cascademejorado1500.xml')
+pelota_clas = cv2.CascadeClassifier('C:/Users/vicen/Documents/Git/BlendBots_FC/ComputerVision/cascade1500y300.xml')
 
 while True:
 	
