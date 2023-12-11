@@ -153,7 +153,7 @@ def control(point):
 
 
 rospy.init_node('image')
-pub = rospy.Publisher('/Vision_node', sensor_msgs.msg.Image, queue_size=1)
+pub = rospy.Publisher('/Head_Control_Node', sensor_msgs.msg.Image, queue_size=1)
 error_pub = rospy.Publisher('/error', geometry_msgs.msg.Point, queue_size=1)
 position_pub = rospy.Publisher('/position', geometry_msgs.msg.Point, queue_size=1)
 mov_pub = rospy.Publisher('/following', std_msgs.msg.Bool, queue_size=1)
