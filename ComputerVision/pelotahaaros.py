@@ -6,7 +6,6 @@ import numpy as np
 from sensor_msgs.msg import Image
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
-import geometry_msgs
 from geometry_msgs.msg import Point
 import math
 import std_msgs
@@ -37,27 +36,33 @@ def imageCallback(img_msg):
 
 #cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)
 def ball_detect(frame):
-	majinBooClassif = cv2.CascadeClassifier('/home/robotis/nayarit_ws/src/op3_leo/data/cascade1500y300.xml')
+    global center
+
+    majinBooClassif = cv2.CascadeClassifier('/home/robotis/nayarit_ws/src/op3_leo/data/cascade1500y300.xml')
 
 	#ret,frame = cap.read()
-	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-	toy = majinBooClassif.detectMultiScale(gray,
-	scaleFactor = 5,
-	minNeighbors = 100,minSize=(50,50))
+    toy = majinBooClassif.detectMultiScale(gray,
+    scaleFactor = 5,
+    minNeighbors = 100,minSize=(50,50))
 
-	for (x,y,w,h) in toy:
-		cv2.rectangle(frame, (x,y),(x+w,y+h),(0,255,0),2)
-		cx=int((x+(x+w))/2)
-		cy=int((y+(y+h))/2)
+    for (x,y,w,h) in toy:
+	    cv2.rectangle(frame, (x,y),(x+w,y+h),(0,255,0),2)
+        cx=int((x+(x+w))/2)
+        cy=int((y+(y+h))/2)
+        center.x = cx
+        center.y = cy
 		cv2.circle(frame, (cx, cy), radius=5, color=(0, 255, 0), thickness=1)
+        pub_center.publish(center)
 		
 
 	return frame
 
 if __name__ == "__main__":
     rospy.init_node('image')
-    pub_final = rospy.Publisher('/Final', sensor_msgs.msg.Image, queue_size=1)
+    pub_final = rospy.Publisher('/ImgFinal', sensor_msgs.msg.Image, queue_size=1)
+    pub_center = rospy.Publisher('/BallCenter', Point, queue_size=1)
     #pub_mask = rospy.Publisher('/Mask', sensor_msgs.msg.Image, queue_size=1)
     #pub_frame = rospy.Publisher('/Frame', sensor_msgs.msg.Image, queue_size=1)
 
@@ -66,6 +71,8 @@ if __name__ == "__main__":
     bridge = CvBridge()
 
     subimg = rospy.Subscriber("/usb_cam/image_raw", Image, imageCallback)
+
+    center = Point()
 
     while not rospy.is_shutdown():
         pass
