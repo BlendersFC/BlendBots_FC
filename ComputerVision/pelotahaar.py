@@ -2,9 +2,9 @@
 import cv2
 
 #cap = cv2.VideoCapture(0,cv2.CAP_DSHOW) 
-#cap = cv2.VideoCapture('C:/Users/vicen/Downloads/WIN_20231208_15_17_00_Pro.mp4')
-#cap = cv2.VideoCapture('C:/Users/vicen/Downloads/WIN_20231208_15_16_32_Pro.mp4')
-cap = cv2.VideoCapture('C:/Users/vicen/Downloads/WIN_20231117_11_36_57_Pro.mp4')
+#cap = cv2.VideoCapture("C:/Users/vicen/Downloads/WhatsApp Video 2023-12-29 at 12.11.43 PM.mp4")
+cap = cv2.VideoCapture("C:/Users/vicen/Downloads/WhatsApp Video 2023-12-29 at 12.11.45 PM.mp4")
+
 
 pelota_clas = cv2.CascadeClassifier('C:/documentos/git_ws/BlendBots_FC/ComputerVision/cascade3000y800.xml')
 
@@ -30,8 +30,8 @@ while True:
 	Este código e
 	'''
 	objects = pelota_clas.detectMultiScale(gray,
-	scaleFactor = 6,
-	minNeighbors = 100, minSize=(100,100))
+	scaleFactor = 2,
+	minNeighbors = 80, minSize=(100,100))
 
 	# Si se detectó al menos un objeto, tomar el primer rectángulo
 	if len(objects) > 0:
