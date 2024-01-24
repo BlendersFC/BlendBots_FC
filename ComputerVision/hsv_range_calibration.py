@@ -11,7 +11,7 @@ def nothing(x):
 
 # image Path
 script_dir = os.path.dirname(__file__) 
-rel_path = "Img\\goal5.jpg"
+rel_path = "C:/Users/lizet/Downloads/CAP.png"
 image_path = os.path.join(script_dir, rel_path)
 image = cv2.imread(image_path)
 # image = cv2.imread('HSVScale.py')
