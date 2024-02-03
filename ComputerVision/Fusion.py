@@ -76,6 +76,7 @@ def line_elimination(frame):
     mask2 = cv2.erode(umbral, np.ones((7, 7), np.uint8))
     mask2 = cv2.dilate(mask2, np.ones((3, 3), np.uint8))
     
+    
     final = mask2-dummy_mask # White reduction
     return frame
 
