@@ -38,16 +38,17 @@ def imageCallback(img_msg):
 def ball_detect(frame):
     global center
 
-    majinBooClassif = cv2.CascadeClassifier('/home/robotis/nayarit_ws/src/op3_leo/data/cascade1500y300.xml')
+    pelota_clas = cv2.CascadeClassifier('/home/robotis/nayarit_ws/src/op3_leo/data/soccer_ball_cascade.xml')
 
     # ret,frame = cap.read()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    toy = majinBooClassif.detectMultiScale(gray,
-                                           scaleFactor=5,
+    ball = pelota_clas.detectMultiScale(gray,
+                                           scaleFactor=2,
                                            minNeighbors=100, minSize=(50, 50))
 
-    for (x, y, w, h) in toy:
+    if len(ball)>0:
+        x,y,w,h=ball[0]
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
         cx = int((x + (x + w)) / 2)
         cy = int((y + (y + h)) / 2)
