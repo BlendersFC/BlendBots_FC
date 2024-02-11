@@ -48,7 +48,7 @@ def ball_detect(frame):
                                            minNeighbors=100, minSize=(50, 50))
 
     if len(ball)>0:
-        y,x,h,w=ball[0]
+        x,y,w,h = ball[0]
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
         cx = int((x + (x + w)) / 2)
         cy = int((y + (y + h)) / 2)
