@@ -6,8 +6,10 @@ import os
 def line_elimination(frame):
     green_lower = (32, 112, 16)
     green_upper = (101, 255, 255)
-    white_lower = (36, 0, 44)
-    white_upper = (133, 31, 255)
+    #white_lower = (36, 0, 44)
+    #white_upper = (133, 31, 255)
+    white_lower = (0, 0, 180)
+    white_upper = (179, 255, 255)
 
     #frame = cv2.resize(frame, dsize=(470, 640), interpolation=cv2.INTER_CUBIC)
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -20,7 +22,7 @@ def line_elimination(frame):
     ## LINEA ENTERA####
     img = cv2.GaussianBlur(mask, (7, 7), 0)
     edges = cv2.Canny(img, 50, 150, apertureSize=5)  # limites y matriz de gradiente (impar)
-    lines2 = cv2.HoughLines(edges, 1, 3.141592 / 180, 150) 
+    lines2 = cv2.HoughLines(edges, 1, 3.141592 / 180, 120) 
 
     if lines2 is not None:
         for line in lines2:
@@ -44,14 +46,17 @@ def line_elimination(frame):
     mask2 = cv2.dilate(mask2, np.ones((3, 3), np.uint8))
     
     final = mask2-dummy_mask # White reduction
+    cv2.imshow("white", mask)
     return frame
 
 def white_f(frame):
     
     #white_lower = (0, 0, 88)
     #white_upper = (88, 90, 234)
-    white_lower = (0, 13, 146)
-    white_upper = (150, 250, 255)
+    #white_lower = (0, 13, 146)
+    #white_upper = (150, 250, 255)
+    white_lower = (0, 0, 180)
+    white_upper = (179, 255, 255)
 
     frame = cv2.resize(frame, dsize=(640, 480), interpolation=cv2.INTER_CUBIC)
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) 
@@ -88,7 +93,7 @@ def white_f(frame):
     if centroid_x_list and centroid_y_list is not None:
         avg_cX =int(np.mean(centroid_x_list))
         avg_cY = int(np.mean(centroid_y_list))
-        cv2.circle(mask, (avg_cX, avg_cY), 60, (255, 255, 255), -1)
+        cv2.circle(mask, (avg_cX, avg_cY), 30, (255, 255, 255), -1)
     
     # Display images
     cv2.imshow("White mask", mask)
@@ -97,8 +102,8 @@ def white_f(frame):
     
 def main():
     # Open a connection to the webcam (use 0 for default webcam)
-    #cap= cv2.VideoCapture("C:/Users/lizet/Downloads/VIDBLANCO.mp4")
-    cap = cv2.VideoCapture(0)
+    cap= cv2.VideoCapture("C:/Users/lizet/Downloads/VIDBLANCO.mp4")
+    #cap = cv2.VideoCapture(0)
     while True:
         # Read a frame from the webcam
         ret, frame = cap.read()
