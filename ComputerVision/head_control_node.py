@@ -4,7 +4,6 @@
 import rospy
 import sensor_msgs
 import numpy as np
-from sensor_msgs.msg import Image
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 import geometry_msgs
@@ -152,8 +151,7 @@ def control(point):
         position_pub.publish(position_point)"""
 
 
-rospy.init_node('image')
-pub = rospy.Publisher('/Head_Control_Node', sensor_msgs.msg.Image, queue_size=1)
+rospy.init_node('Head_Control_Node')
 error_pub = rospy.Publisher('/error', geometry_msgs.msg.Point, queue_size=1)
 position_pub = rospy.Publisher('/position', geometry_msgs.msg.Point, queue_size=1)
 mov_pub = rospy.Publisher('/following', std_msgs.msg.Bool, queue_size=1)
