@@ -38,7 +38,7 @@ def imageCallback(img_msg):
 def ball_detect(frame):
     global center
 
-    pelota_clas = cv2.CascadeClassifier('/home/robotis/nayarit_ws/src/op3_leo/data/soccer_ball_cascade.xml')
+    pelota_clas = cv2.CascadeClassifier('/home/robotis/blenders_ws/src/soccer_pkg/data/soccer_ball_cascade.xml')
 
     # ret,frame = cap.read()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -48,13 +48,17 @@ def ball_detect(frame):
                                            minNeighbors=100, minSize=(50, 50))
 
     if len(ball)>0:
-        x,y,w,h=ball[0]
+        x,y,w,h = ball[0]
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
         cx = int((x + (x + w)) / 2)
         cy = int((y + (y + h)) / 2)
         center.x = cx
         center.y = cy
         cv2.circle(frame, (cx, cy), radius=5, color=(0, 255, 0), thickness=1)
+        pub_center.publish(center)
+    else:
+        center.x = 999
+        center.y = 999
         pub_center.publish(center)
 
     return frame
