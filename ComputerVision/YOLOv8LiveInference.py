@@ -13,10 +13,10 @@ cap = cv2.VideoCapture(0)
 
 # Load model 
 
-model = YOLO("soccerballsnano.pt")
+model = YOLO("full_soccer_model.pt")
 
 # object classes
-classNames = ["ball"]
+classNames = ["robot", "goal post", "ball"]
 
 
 while True:
