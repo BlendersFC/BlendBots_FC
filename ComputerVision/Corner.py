@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 
 def find_top_border(image):
     # Convert the image to HSV
+    #soy montse
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     # Define the lower and upper bounds for the green color
