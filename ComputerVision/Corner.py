@@ -2,24 +2,34 @@
 # import the required library 
 import numpy as np 
 import cv2 
+#from cv2 import xphoto
 from matplotlib import pyplot as plt 
 
 def find_top_border(image):
     # Convert the image to HSV
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
+   
     # Define the lower and upper bounds for the green color
-    lower_green = np.array([0, 39, 0])  # Adjust as needed
-    upper_green = np.array([37, 121, 144])
+    #lower_green = np.array([0, 39, 0])  # Adjust as needed
+    #upper_green = np.array([37, 121, 144])
+
+    lower_green = (0, 111, 0)
+    upper_green = (58, 255, 255)
 
     # Threshold the image to extract the green color
     green_mask = cv2.inRange(hsv, lower_green, upper_green)
+    kernel = np.ones((5,5),np.uint8)
+    green_mask = cv2.dilate(green_mask,kernel,iterations = 1)
+    green_mask = cv2.erode(green_mask,kernel,iterations = 3)
 
      # Display the green mask for visualization
     cv2.imshow("Green Mask", green_mask)
 
     # Find contours in the green mask
     contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Filtrar contornos por área mínima
+    min_contour_area= 10000
+    contours = [cnt for cnt in contours if cv2.contourArea(cnt) > min_contour_area]
 
     if contours:
         # Find the contour with the minimum y-coordinate (top border)
@@ -31,27 +41,22 @@ def find_top_border(image):
 
 
 def line_elimination(frame,border):
-    green_lower = (0, 0, 127)
-    green_upper = (179, 40, 255)
+    green_lower = (0, 44, 0)
+    green_upper = (49, 180, 180)
+
+    white_lower = (0, 0, 0)
+    white_upper = (180, 82, 255)
 
     #frame = cv2.resize(frame, dsize=(470, 640), interpolation=cv2.INTER_CUBIC)
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    hsv = cv2.inRange(hsv_frame, green_lower, green_upper)
+    hsv = cv2.inRange(hsv_frame, white_lower, white_upper)
     mask=hsv
-    _, umbral = cv2.threshold(hsv, 250, 255, cv2.THRESH_BINARY)
-
-    
-    kernel = np.ones((5,5),np.uint8)
-    mask = cv2.dilate(mask,kernel,iterations = 1)
-    mask = cv2.erode(mask,kernel,iterations = 1)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-    opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
 
     ## LINEA ENTERA####
     #img = cv2.GaussianBlur(mask, (7, 7), 0)
-    edges = cv2.Canny(mask, 50, 150, apertureSize=5)  # limites y matriz de gradiente (impar)
-    lines2 = cv2.HoughLines(edges, 1, 3.141592 / 180, 180) 
+    edges = cv2.Canny(mask, 20, 150, apertureSize=7)  # limites y matriz de gradiente (impar)
+    lines2 = cv2.HoughLines(edges, 1, 3.141592 / 180, 120) 
 
     if lines2 is not None:
         for line in lines2:
@@ -72,11 +77,16 @@ def line_elimination(frame,border):
 def main():
     # read the image 
     #frame= cv2.imread("C:/Users/lizet/Downloads/CAP.png") 
-    cap= cv2.VideoCapture("C:/Users/lizet/Downloads/VIDPRUEBA.mp4")
-    white_lower = (0, 0, 180)
-    white_upper = (179, 255, 255)
-    green_lower = (0, 0, 127)
-    green_upper = (179, 40, 255)
+    cap= cv2.VideoCapture("C:/Users/lizet/Downloads/Crop.mp4")
+
+
+
+    white_lower = (0, 0, 0)
+    white_upper = (180, 82, 255)
+    #green_lower = (0, 0, 127)
+    #green_upper = (179, 40, 255)
+    green_lower = (0, 44, 0)
+    green_upper = (49, 200, 180)
 
 
     while True:
@@ -84,6 +94,8 @@ def main():
         ret, frame = cap.read()
         if not ret:
             break
+
+        cv2.imshow("original", frame)
 
         border= find_top_border(frame)
         frame=line_elimination(frame,border)
@@ -101,11 +113,10 @@ def main():
         mask = cv2.dilate(mask,kernel,iterations = 1)
         mask = cv2.erode(mask,kernel,iterations = 1)
 
-
-        cv2.imshow("gray", mask)
+        cv2.imshow("white", mask)
     
         # detect corners with the goodFeaturesToTrack function. 
-        corners = cv2.goodFeaturesToTrack(mask, 20, 0.05, 50)  #corners, quality level, maximum distance
+        corners = cv2.goodFeaturesToTrack(mask, 3, 0.9, 200)  #corners, quality level, maximum distance
         corners = np.int0(corners) 
     
         # we iterate through each corner,  
