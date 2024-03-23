@@ -55,8 +55,8 @@ def line_elimination(frame,border):
 
     ## LINEA ENTERA####
     #img = cv2.GaussianBlur(mask, (7, 7), 0)
-    edges = cv2.Canny(mask, 20, 150, apertureSize=7)  # limites y matriz de gradiente (impar)
-    lines2 = cv2.HoughLines(edges, 1, 3.141592 / 180, 120) 
+    edges = cv2.Canny(mask, 0, 180, apertureSize=7)  # limites y matriz de gradiente (impar)
+    lines2 = cv2.HoughLines(edges, 1, 3.141592 / 180, 100) 
 
     if lines2 is not None:
         for line in lines2:
