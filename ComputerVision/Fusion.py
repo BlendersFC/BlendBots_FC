@@ -36,24 +36,28 @@ def imageCallback(img_msg):
     #pub_frame.publish(frame_img)
 
 
-def line_elimination(frame):
-    green_lower = (32, 112, 16)
-    green_upper = (101, 255, 255)
-    white_lower = (36, 0, 44)
-    white_upper = (133, 31, 255)
+
+
+def line_elimination(frame,border):
+    green_lower = (0, 44, 0)
+    green_upper = (49, 180, 180)
+
+    white_lower = (0, 0, 0)
+    white_upper = (180, 82, 255)
 
     #frame = cv2.resize(frame, dsize=(470, 640), interpolation=cv2.INTER_CUBIC)
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    dummy_mask = np.zeros_like(cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY))
 
     hsv = cv2.inRange(hsv_frame, white_lower, white_upper)
     mask=hsv
-    _, umbral = cv2.threshold(hsv, 250, 255, cv2.THRESH_BINARY)
+    kernel = np.ones((5,5),np.uint8)
+    mask = cv2.dilate(mask,kernel,iterations = 1)
+    mask = cv2.erode(mask,kernel,iterations = 1)
 
     ## LINEA ENTERA####
-    img = cv2.GaussianBlur(mask, (7, 7), 0)
-    edges = cv2.Canny(img, 50, 150, apertureSize=5)  # limites y matriz de gradiente (impar)
-    lines2 = cv2.HoughLines(edges, 1, 3.141592 / 180, 150) 
+    #img = cv2.GaussianBlur(mask, (7, 7), 0)
+    edges = cv2.Canny(mask, 30, 80, apertureSize=7)  # limites y matriz de gradiente (impar)
+    lines2 = cv2.HoughLines(edges, 1, 3.141592 / 180, 100) #image, pixels, theta, threshold
 
     if lines2 is not None:
         for line in lines2:
@@ -66,18 +70,9 @@ def line_elimination(frame):
             y1 = int(y0 + 1000 * (a))
             x2 = int(x0 - 1000 * (-b))
             y2 = int(y0 - 1000 * (a))
-            cv2.line(frame, (x1, y1), (x2, y2), (32, 112, 16), 17)
-
-    ####3GREEN DETECTION #####
-    hsv = cv2.inRange(hsv_frame, green_lower, green_upper)
-    mask2 = cv2.erode(hsv, np.ones((7, 7), np.uint8))
-    mask2 = cv2.dilate(mask2, np.ones((4, 4), np.uint8))
-    _, umbral = cv2.threshold(hsv, 250, 255, cv2.THRESH_BINARY_INV)
-    mask2 = cv2.erode(umbral, np.ones((7, 7), np.uint8))
-    mask2 = cv2.dilate(mask2, np.ones((3, 3), np.uint8))
-    
-    
-    final = mask2-dummy_mask # White reduction
+            if ( y1) > border and (y2) > border:
+                cv2.line(frame, (x1, y1), (x2, y2), (0, 255, 0), 10)
+        edges = cv2.Canny(mask, 30, 80, apertureSize=7)  # limites y matriz de gradiente (impar)
     return frame
 
 def divide_image(image, rows, cols, top_border):
@@ -144,22 +139,30 @@ def find_light_interest_regions(image, rows, cols, num_regions, top_border):
 
     return top_indices, [image_cells[i] for i in top_indices]
 
+
 def find_top_border(image):
     # Convert the image to HSV
+    #soy montse
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
+   
     # Define the lower and upper bounds for the green color
-    lower_green = np.array([32, 112, 16])  # Adjust as needed
-    upper_green = np.array([101, 255, 255])
+    #lower_green = np.array([0, 39, 0])  # Adjust as needed
+    #upper_green = np.array([37, 121, 144])
+
+    lower_green = (0, 111, 0)
+    upper_green = (58, 255, 255)
 
     # Threshold the image to extract the green color
     green_mask = cv2.inRange(hsv, lower_green, upper_green)
-
-     # Display the green mask for visualization
-    #cv2.imshow("Green Mask", green_mask)
+    kernel = np.ones((5,5),np.uint8)
+    green_mask = cv2.dilate(green_mask,kernel,iterations = 1)
+    green_mask = cv2.erode(green_mask,kernel,iterations = 3)
 
     # Find contours in the green mask
     contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Filtrar contornos por área mínimaq
+    min_contour_area= 1000
+    contours = [cnt for cnt in contours if cv2.contourArea(cnt) > min_contour_area]
 
     if contours:
         # Find the contour with the minimum y-coordinate (top border)
@@ -222,7 +225,7 @@ def goal_fusion(cap):
     # Display the top border for visualization
     cv2.line(frame, (0, top_border), (frame.shape[1], top_border), (0, 255, 255), 2)
 
-    frame=line_elimination(frame)
+    frame=line_elimination(frame, top_border)
 
     # Find the top N regions with the highest light pixel concentration, discarding the part above the top border
     top_indices, top_regions = find_light_interest_regions(frame, num_rows, num_cols, num_top_regions, top_border)
