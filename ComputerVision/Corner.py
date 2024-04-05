@@ -28,7 +28,7 @@ def find_top_border(image):
 
     # Find contours in the green mask
     contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    # Filtrar contornos por área mínima
+    # Filtrar contornos por área mínimaq
     min_contour_area= 10000
     contours = [cnt for cnt in contours if cv2.contourArea(cnt) > min_contour_area]
 
@@ -53,11 +53,14 @@ def line_elimination(frame,border):
 
     hsv = cv2.inRange(hsv_frame, white_lower, white_upper)
     mask=hsv
+    kernel = np.ones((5,5),np.uint8)
+    mask = cv2.dilate(mask,kernel,iterations = 1)
+    mask = cv2.erode(mask,kernel,iterations = 1)
 
-    ## LINEA ENTERA####
+    '''## LINEA ENTERA####
     #img = cv2.GaussianBlur(mask, (7, 7), 0)
-    edges = cv2.Canny(mask, 0, 180, apertureSize=7)  # limites y matriz de gradiente (impar)
-    lines2 = cv2.HoughLines(edges, 1, 3.141592 / 180, 100) 
+    edges = cv2.Canny(mask, 30, 80, apertureSize=7)  # limites y matriz de gradiente (impar)
+    lines2 = cv2.HoughLines(edges, 1, 3.141592 / 180, 100) #image, pixels, theta, threshold
 
     if lines2 is not None:
         for line in lines2:
@@ -72,6 +75,24 @@ def line_elimination(frame,border):
             y2 = int(y0 - 1000 * (a))
             if ( y1) > border and (y2) > border:
                 cv2.line(frame, (x1, y1), (x2, y2), (255, 255, 255), 10)
+        edges = cv2.Canny(mask, 30, 80, apertureSize=7)  # limites y matriz de gradiente (impar)'''
+
+    edges = cv2.Canny(mask, 30, 80, apertureSize=5)  # limites y matriz de gradiente (impar)
+    lines2 = cv2.HoughLines(edges, 1,np.pi / 4, 80) #image, pixels, theta, threshold
+
+    if lines2 is not None:
+        for line in lines2:
+            rho, theta = line[0]
+            a = np.cos(theta)
+            b = np.sin(theta)
+            x0 = a * rho
+            y0 = b * rho
+            x1 = int(x0 + 1000 * (-b))
+            y1 = int(y0 + 1000 * (a))
+            x2 = int(x0 - 1000 * (-b))
+            y2 = int(y0 - 1000 * (a))
+            if ( y1) > border or (y2) > border:
+                cv2.line(frame, (x1, y1), (x2, y2), (255, 255, 255), 1)
     return frame
 
 
@@ -118,25 +139,27 @@ def main():
     
         # detect corners with the goodFeaturesToTrack function. 
         corners = cv2.goodFeaturesToTrack(mask, 3, 0.9, 200)  #corners, quality level, maximum distance
-        corners = np.int0(corners) 
+        
+        if corners is not None:
+            corners = np.int0(corners) 
     
-        # we iterate through each corner,  
-        # making a circle at each point that we think is a corner. 
-        average_x=0
-        average_y=0
-        totali=0
-        for i in corners: 
-                x, y = i.ravel() 
-                if y> border:
-                    average_x +=x
-                    average_y +=y
-                    totali +=1
-                    cv2.circle(frame, (x, y), 3, 255, 5) 
+            # we iterate through each corner,  
+            # making a circle at each point that we think is a corner. 
+            average_x=0
+            average_y=0
+            totali=0
+            for i in corners: 
+                    x, y = i.ravel() 
+                    if y> border:
+                        average_x +=x
+                        average_y +=y
+                        totali +=1
+                        cv2.circle(frame, (x, y), 3, 255, 5) 
 
-        if totali != 0: 
-            average_x = int(average_x/totali)
-            average_y= int( average_y /totali)
-            cv2.circle (frame,( average_x, average_y), 3, 0, 20)
+            if totali != 0: 
+                average_x = int(average_x/totali)
+                average_y= int( average_y /totali)
+                cv2.circle (frame,( average_x, average_y), 3, 0, 20)
     
         cv2.imshow("frame", frame)
         # Exit when 'q' key is pressed
