@@ -63,6 +63,8 @@ def line_elimination(frame,border):
     edges = cv2.Canny(mask, 30, 80, apertureSize=7)  # limites y matriz de gradiente (impar)
     lines2 = cv2.HoughLines(edges, 1, 3.141592 / 180, 100) #image, pixels, theta, threshold
 
+    y2_prev2=0
+    y1_prev2=0
 
     if lines2 is not None:
         for line in lines2:
@@ -75,13 +77,17 @@ def line_elimination(frame,border):
             y1 = int(y0 + 1000 * (a))
             x2 = int(x0 - 1000 * (-b))
             y2 = int(y0 - 1000 * (a))
-            if ( y1) > border and (y2) > border:
-                cv2.line(frame, (x1, y1), (x2, y2), (255, 255, 255), 10)
-        edges = cv2.Canny(mask, 30, 80, apertureSize=7)  # limites y matriz de gradiente (impar)
+            
+            if ( y1) > border and (y2) > border and (abs(y2_prev2-y2))>2 and (abs(y1_prev2-y1))>2:
+                cv2.line(frame, (x1, y1), (x2, y2), (255, 255, 255), 3)
+            y2_prev2=y2
+            y1_prev2=y1
 
     
-    edges2 = cv2.Canny(mask, 20, 50, apertureSize=7)  # limites y matriz de gradiente (impar)   
+    edges2 = cv2.Canny(mask, 20, 80, apertureSize=7)  # limites y matriz de gradiente (impar)   
     lines = cv2.HoughLinesP(edges2,1, 3.141592 /180,10,1,30)
+    y2_prev=0
+    y1_prev=0
     if lines is not None:
 
         N = lines.shape[0]
@@ -90,11 +96,16 @@ def line_elimination(frame,border):
             y1 = lines[i][0][1]    
             x2 = lines[i][0][2]
             y2 = lines[i][0][3]
-            if y1>border and y2 >border:    
-                cv2.line(frame,(x1,y1),(x2,y2),(255,255,255),10)
+            if y1>border and y2 >border and (abs(y2_prev-y2))>3 and (abs(y1_prev-y1))>3 :    
+                cv2.line(frame,(x1,y1),(x2,y2),(255,255,255),3)
+            y2_prev=y2
+            y1_prev=y1
     
-
-    return frame,lines2
+    lines_combined = []
+    lines_combined.extend([line[0] for line in lines])
+    lines_combined.extend(lines2)
+    
+    return frame,lines_combined
 
 def intersection(line1, line2):
     """
