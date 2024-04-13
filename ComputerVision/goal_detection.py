@@ -20,7 +20,7 @@ def divide_image(image, rows, cols, top_border):
         for j in range(cols)
     ]
 
-    #  # Create an image to visualize the cells
+    # Create an image to visualize the cells
     # cell_visualization = np.zeros_like(image)
 
     # # Draw rectangles around each cell
@@ -62,26 +62,35 @@ def find_light_interest_regions(image, rows, cols, num_regions, top_border):
     top_indices = np.argsort(concentrations)[-num_regions:]
 
       # Display the top regions with rectangles
-    display_top_regions(image, rows, cols, top_indices, top_border)
+    #display_top_regions(image, rows, cols, top_indices, top_border)
 
     return top_indices, [image_cells[i] for i in top_indices]
 
 def find_top_border(image):
     # Convert the image to HSV
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
+   
     # Define the lower and upper bounds for the green color
-    lower_green = np.array([32, 112, 16])  # Adjust as needed
-    upper_green = np.array([101, 255, 255])
+    #lower_green = np.array([0, 39, 0])  # Adjust as needed
+    #upper_green = np.array([37, 121, 144])
+
+    lower_green = (0, 111, 0)
+    upper_green = (58, 255, 255)
 
     # Threshold the image to extract the green color
     green_mask = cv2.inRange(hsv, lower_green, upper_green)
+    kernel = np.ones((5,5),np.uint8)
+    green_mask = cv2.dilate(green_mask,kernel,iterations = 1)
+    green_mask = cv2.erode(green_mask,kernel,iterations = 3)
 
      # Display the green mask for visualization
-    cv2.imshow("Green Mask", green_mask)
+    # cv2.imshow("Green Mask", green_mask)
 
     # Find contours in the green mask
     contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Filtrar contornos por área mínimaq
+    min_contour_area= 1000
+    contours = [cnt for cnt in contours if cv2.contourArea(cnt) > min_contour_area]
 
     if contours:
         # Find the contour with the minimum y-coordinate (top border)
@@ -89,7 +98,6 @@ def find_top_border(image):
         return min_y
     else:
         return 0  # Default to 0 if no contours are foun
-
 
 # Debug functions
 def display_top_regions(image, rows, cols, top_indices, top_border):
@@ -127,8 +135,7 @@ def calculate_centers(contours, index, num_cols, num_rows, top_border, goal_cent
 
     return goal_centers
 
-def main():
-
+def process_image():
     script_dir = os.path.dirname(__file__) 
     rel_path = "Img\\goal4.jpg"
     image_path = os.path.join(script_dir, rel_path)
@@ -164,7 +171,6 @@ def main():
 
     # Calculate the average center of the goal posts
     if goal_centers:
-        # print(goal_centers)
         avg_center = tuple(np.mean(goal_centers, axis=0, dtype=int))
 
         # Print the average center coordinates
@@ -181,4 +187,4 @@ def main():
         print("No goal posts detected.")
 
 if __name__ == "__main__":
-    main()
+    process_image()
