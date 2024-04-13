@@ -1,9 +1,9 @@
-# Run this program to try the model with webcam
+"""Run this program to try the model with webcam"""
+import math
+import cv2
+import cProfile
 from ultralytics import YOLO
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
-import cv2
-import math
-import cProfile
 
 
 def main():
@@ -13,7 +13,7 @@ def main():
         # Start webcam
     cap = cv2.VideoCapture(0)
 
-    # Load model 
+    # Load model
 
     model = YOLO("full_soccer_model.pt")
 
@@ -23,7 +23,7 @@ def main():
     ov_model = YOLO('full_soccer_model_openvino_model')
 
     # object classes
-    classNames = ["robot", "goal post", "ball"]
+    class_names = ["robot", "goal post", "ball"]
 
 
     while True:
@@ -47,16 +47,16 @@ def main():
 
                 # class name
                 cls = int(box.cls[0])
-                text = f"{classNames[cls]} {confidence:.2f}"
+                text = f"{class_names[cls]} {confidence:.2f}"
 
                 # object details
                 org = [x1, y1]
                 font = cv2.FONT_HERSHEY_SIMPLEX
-                fontScale = 1
+                font_scale = 1
                 color = (255, 0, 0)
                 thickness = 2
 
-                cv2.putText(img, text, org, font, fontScale, color, thickness)
+                cv2.putText(img, text, org, font, font_scale, color, thickness)
 
         cv2.imshow('Webcam', img)
         # Press 'esc' to exit

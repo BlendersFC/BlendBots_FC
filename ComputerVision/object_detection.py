@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+"""Module for object detection operations"""
 class ObjectDetection:
 
     def __init__(self, frame) -> None:
@@ -10,7 +10,7 @@ class ObjectDetection:
     def hsv_detection(self, lower_range, upper_range, erode=None, dilate=None, obstacle=None):
 
         hsv_frame = cv2.cvtColor(self.frame,cv2.COLOR_BGR2HSV)
-        
+
         hsv = cv2.inRange(hsv_frame, lower_range, upper_range)
         self.mask = cv2.erode(hsv,np.ones((erode,erode), np.uint8))
         self.mask = cv2.dilate(self.mask, np.ones((dilate,dilate), np.uint8))
@@ -21,11 +21,11 @@ class ObjectDetection:
             self.center = []
 
             num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(self.mask, 4, cv2.CV_32S)
-            
+
             self.center = [(int(i[0]), int(i[1])) for i in centroids[1:].tolist()]
 
             self.mask = []
-            
+
             for label in range(0,num_labels-1):
                 fake_mask = np.zeros((labels.shape), dtype=np.uint8)
 
@@ -56,13 +56,13 @@ class ObjectDetection:
         #mask = cv2.dilate(mask, np.ones((dilate,dilate), np.uint8))
 
         self.contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        
+
     def rectangle_drawing(self, min_area=None, max_area=None, orientation=False, robot=False):
         self.box = []
         
         for idx, cnt in enumerate(self.contours):
             area = cv2.contourArea(cnt)
-            
+
             if area > min_area and area < max_area:
                 contour = cv2.approxPolyDP(cnt, 0.001*cv2.arcLength(cnt, True), True)
 
@@ -71,7 +71,7 @@ class ObjectDetection:
                         x,y,w,h = cv2.boundingRect(contour)
                         cX = int(x+(w/2))
                         cY = int(y+(h/2))
-                        
+
                         self.center = [(cX, cY)]
                         idx = 0
 
@@ -94,9 +94,9 @@ class ObjectDetection:
                     cv2.rectangle(self.frame, (x,y), (x+w,y+h), color=(255,255,0), thickness=3)
                     cv2.circle(self.frame, center, 3, color=(255,255,255), thickness=2)
                     self.center = center
-        
+
         self.box.reverse()
-    
+
     def potential_fields(self, frame, int_field, mid_field, ext_field, offset=None, offset2=None):
 
         self.mid_field_mask = np.zeros_like(cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY))

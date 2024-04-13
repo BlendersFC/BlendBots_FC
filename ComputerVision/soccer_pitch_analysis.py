@@ -1,5 +1,7 @@
 #!/usr/bin/env python2.7
 
+import os
+import math
 import rospy
 import sensor_msgs
 import numpy as np
@@ -8,15 +10,13 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 import geometry_msgs
 from geometry_msgs.msg import Point
-import math
 import std_msgs
 from std_msgs.msg import Bool
-import os
 import goal_detection as gd
 import line_detection as ld
 
 
-def imageCallback(img_msg):
+def image_callback(img_msg):
 
     rospy.loginfo(img_msg.header)
 
@@ -69,7 +69,6 @@ def goal_fusion(cap):
         _, binary_mask = cv2.threshold(gray_region, 150, 255, cv2.THRESH_BINARY)
         contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        
 
         # Draw the contours on the original image with correct offset
         gd.draw_contours(frame, contours, index, num_cols, num_rows, top_border)
@@ -103,7 +102,7 @@ if __name__ == "__main__":
 
     bridge = CvBridge()
 
-    subimg = rospy.Subscriber("/usb_cam/image_raw", Image, imageCallback)
+    subimg = rospy.Subscriber("/usb_cam/image_raw", Image, image_callback)
 
     while not rospy.is_shutdown():
         pass

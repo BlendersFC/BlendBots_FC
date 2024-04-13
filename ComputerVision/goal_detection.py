@@ -1,8 +1,11 @@
+"""Module for goal detection functions"""
+import os
 import cv2
 import numpy as np
-import os
+
 
 def divide_image(image, rows, cols, top_border):
+    """Divide image into cells"""
     # Get image dimensions
     height, width = image.shape[:2]
 
@@ -38,6 +41,7 @@ def divide_image(image, rows, cols, top_border):
     return cells
 
 def calculate_light_pixel_concentration(image_part):
+    """Calculate and return light pixel concentration of an image"""
     # Convert the image part to grayscale
     gray_part = cv2.cvtColor(image_part, cv2.COLOR_BGR2GRAY)
 
@@ -50,6 +54,7 @@ def calculate_light_pixel_concentration(image_part):
     return light_pixel_concentration
 
 def find_light_interest_regions(image, rows, cols, num_regions, top_border):
+    """Returns image cells with highest light pixel concentration"""
     # Divide the image into a grid of cells
     image_cells = divide_image(image, rows, cols, top_border)
 
@@ -67,9 +72,10 @@ def find_light_interest_regions(image, rows, cols, num_regions, top_border):
     return top_indices, [image_cells[i] for i in top_indices]
 
 def find_top_border(image):
+    """Find the top border of the pitch"""
     # Convert the image to HSV
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-   
+
     # Define the lower and upper bounds for the green color
     #lower_green = np.array([0, 39, 0])  # Adjust as needed
     #upper_green = np.array([37, 121, 144])
@@ -101,6 +107,7 @@ def find_top_border(image):
 
 # Debug functions
 def display_top_regions(image, rows, cols, top_indices, top_border):
+    """Display regions with highest light pixel concentration"""
     # Draw rectangles around the top regions for visualization
     for index in top_indices:
         i, j = divmod(index, cols)
@@ -115,15 +122,17 @@ def display_top_regions(image, rows, cols, top_indices, top_border):
         cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
 def draw_contours(image, contours, index, num_cols, num_rows, top_border):
+    """Draw contours of the goal posts"""
     offset_x = (index % num_cols) * (image.shape[1] // num_cols)
     offset_y = top_border + (index // num_cols) * (image.shape[0] - top_border) // num_rows
-    
+
     # Draw the contours on the original image with correct offset
     for contour in contours:
         contour_with_offset = contour + (offset_x, offset_y)
         cv2.drawContours(image, [contour_with_offset], -1, (0, 0, 255), 2)
 
 def calculate_centers(contours, index, num_cols, num_rows, top_border, goal_centers, image):
+    """Calculates the center of the goal"""
     offset_x = (index % num_cols) * (image.shape[1] // num_cols)
     offset_y = top_border + (index // num_cols) * (image.shape[0] - top_border) // num_rows
     for contour in contours:
@@ -136,7 +145,8 @@ def calculate_centers(contours, index, num_cols, num_rows, top_border, goal_cent
     return goal_centers
 
 def process_image():
-    script_dir = os.path.dirname(__file__) 
+    """Function for testing with image"""
+    script_dir = os.path.dirname(__file__)
     rel_path = "Img\\goal4.jpg"
     image_path = os.path.join(script_dir, rel_path)
     image = cv2.imread(image_path)
@@ -154,7 +164,7 @@ def process_image():
     # Display the top border for visualization
     cv2.line(image, (0, top_border), (image.shape[1], top_border), (0, 0, 255), 2)
 
-    # Find the top N regions with the highest light pixel concentration, discarding the part above the top border
+    # Find the top N regions with the highest light pixel concentration, discard parts above the top border
     top_indices, top_regions = find_light_interest_regions(image, num_rows, num_cols, num_top_regions, top_border)
 
     # Calculate the center of the goal posts
