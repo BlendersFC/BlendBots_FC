@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.7
-"""Module for operations over the lines of the soccer pitch"""
+
 import numpy as np
 import cv2
 
@@ -10,6 +10,7 @@ def line_elimination(frame,border):
     white_lower = (0, 0, 0)
     white_upper = (180, 82, 255)
 
+    #frame = cv2.resize(frame, dsize=(470, 640), interpolation=cv2.INTER_CUBIC)
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     hsv = cv2.inRange(hsv_frame, white_lower, white_upper)
@@ -18,7 +19,9 @@ def line_elimination(frame,border):
     mask = cv2.dilate(mask,kernel,iterations = 1)
     mask = cv2.erode(mask,kernel,iterations = 1)
 
-    edges = cv2.Canny(mask, 30, 80, apertureSize=7)  # limits and gradient matrix
+    ## LINEA ENTERA####
+    #img = cv2.GaussianBlur(mask, (7, 7), 0)
+    edges = cv2.Canny(mask, 30, 80, apertureSize=7)  # limites y matriz de gradiente (impar)
     lines2 = cv2.HoughLines(edges, 1, 3.141592 / 180, 100) #image, pixels, theta, threshold
 
     if lines2 is not None:

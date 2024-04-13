@@ -1,22 +1,15 @@
 #!/usr/bin/env python2.7
 
-import os
-import math
 import rospy
 import sensor_msgs
 import numpy as np
 from sensor_msgs.msg import Image
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
-import geometry_msgs
-from geometry_msgs.msg import Point
-import std_msgs
-from std_msgs.msg import Bool
 import goal_detection as gd
 import line_detection as ld
 
-
-def image_callback(img_msg):
+def imageCallback(img_msg):
 
     rospy.loginfo(img_msg.header)
 
@@ -50,41 +43,42 @@ def goal_fusion(cap):
     num_top_regions = 12
 
     # Find the top border of the grass
-    top_border = gd.find_top_border(frame)
+    top_border = gd.find_top_border(cap)
 
     # Display the top border for visualization
-    #cv2.line(frame, (0, top_border), (frame.shape[1], top_border), (0, 255, 255), 2)
+    cv2.line(cap, (0, top_border), (cap.shape[1], top_border), (0, 255, 255), 2)
 
-    frame=ld.line_elimination(frame, top_border)
+    cap=ld.line_elimination(cap, top_border)
 
     # Find the top N regions with the highest light pixel concentration, discarding the part above the top border
-    top_indices, top_regions = gd.find_light_interest_regions(frame, num_rows, num_cols, num_top_regions, top_border)
+    top_indices, top_regions = gd.find_light_interest_regions(cap, num_rows, num_cols, num_top_regions, top_border)
 
-    #cv2.imshow("Before contours", frame)
+    #cv2.imshow("Before contours", cap)
 
     # Calculate the center of the goal posts
     goal_centers = []
     for index, region in zip(top_indices, top_regions):
         gray_region = cv2.cvtColor(region, cv2.COLOR_BGR2GRAY)
         _, binary_mask = cv2.threshold(gray_region, 150, 255, cv2.THRESH_BINARY)
-        contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        im2, contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+        
 
         # Draw the contours on the original image with correct offset
-        gd.draw_contours(frame, contours, index, num_cols, num_rows, top_border)
-        goal_centers = gd.calculate_centers(contours, index, num_cols, num_rows, top_border, goal_centers, frame)
+        cap = gd.draw_contours(cap, contours, index, num_cols, num_rows, top_border)
+        goal_centers = gd.calculate_centers(contours, index, num_cols, num_rows, top_border, goal_centers, cap)
 
     # Calculate the average center of the goal posts
     if goal_centers:
         avg_center = tuple(np.mean(goal_centers, axis=0, dtype=int))
 
         # Print the average center coordinates
-        print(f"Avg Center Coordinates: {avg_center}")
+        print("Avg Center Coordinates: %d", avg_center)
 
         # Draw a marker at the average center
-        cv2.drawMarker(frame, avg_center, (255, 0, 255), markerType=cv2.MARKER_CROSS, markerSize=20, thickness=2)
+        cv2.drawMarker(cap, avg_center, (255, 0, 255), markerType=cv2.MARKER_CROSS, markerSize=20, thickness=2)
     
-    return frame
+    return cap
 
     # Release the webcam and close all windows
     #cap.release()
@@ -102,7 +96,7 @@ if __name__ == "__main__":
 
     bridge = CvBridge()
 
-    subimg = rospy.Subscriber("/usb_cam/image_raw", Image, image_callback)
+    subimg = rospy.Subscriber("/usb_cam/image_raw", Image, imageCallback)
 
     while not rospy.is_shutdown():
         pass
