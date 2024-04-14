@@ -1,0 +1,15 @@
+description: Ultralytics full_soccer_model model trained on /kaggle/working/RhobansDetectionV2-5/data.yaml
+author: Ultralytics
+license: AGPL-3.0 https://ultralytics.com/license
+date: '2024-04-13T14:44:55.651765'
+version: 8.0.164
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: '0'
+  1: '1'
+  2: '2'
