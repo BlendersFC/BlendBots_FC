@@ -60,32 +60,6 @@ def line_elimination(frame,border):
     edges = cv2.Canny(mask, 30, 80, apertureSize=7)  # limites y matriz de gradiente (impar)
     lines = cv2.HoughLines(edges, 1, 3.141592 / 180, 100) #image, pixels, theta, threshold
 
-    edgesP = cv2.Canny(mask, 20, 80, apertureSize=7)  # limites y matriz de gradiente (impar)   
-    linesP = cv2.HoughLinesP(edgesP,1, 3.141592 /180,10,1,30)
-    linesc=[]
-    '''if linesP is not None:
-
-        N = linesP.shape[0]
-        for i in range(N):
-            x1 = linesP[i][0][0]
-            y1 = linesP[i][0][1]    
-            x2 = linesP[i][0][2]
-            y2 = linesP[i][0][3]
-            if y1>border and y2 >border:    
-                cv2.line(frame,(x1,y1),(x2,y2),(255,255,255),3)'''            
-    
-    lines_combined = []
-    lines_combined.extend([line[0] for line in linesP])
-    theta_clean=[]
-    lines_clean= []
-    rho_clean=[]
-
-    for line in linesP:
-        rho= line[0][0]
-        theta = line[0][1]
-
-       
-
     y2_prev2=0
     y1_prev2=0
     i=0
@@ -112,12 +86,8 @@ def line_elimination(frame,border):
             disty2=abs(y2_ant-y2)
 
             if (y1) > border and (y2) > border and (abs(y2_prev2-y2))>2 and (abs(y1_prev2-y1))>2:
-                if 10<(distx1 and disty1 and distx2 and disty2)<20:
+                if 0<(distx1 and disty1 and distx2 and disty2)<50:
                     cv2.line(frame, (x1, y1), (x2, y2), (255, 255, 255), 3)
- 
-                #cv2.line(frame, (x1, y1), (x2, y2), (255, 255, 255), 3)
-                #rho_clean.insert([i][0],(rho))
-                #rho_clean.insert([i][1],(theta))
 
             i=i+1
             y2_prev2=y2
@@ -127,18 +97,7 @@ def line_elimination(frame,border):
             x2_ant=x2
             y2_ant=y2
 
-        for line in rho_clean :
-            '''rho=line[0]
-            theta = line[1]
-            a = np.cos(theta)
-            b = np.sin(theta)
-            x0 = a * rho
-            y0 = b * rho
-            x1 = int(x0 + 1000 * (-b))
-            y1 = int(y0 + 1000 * (a))
-            x2 = int(x0 - 1000 * (-b))
-            y2 = int(y0 - 1000 * (a))
-            cv2.line(frame, (x1, y1), (x2, y2), (255, 255, 255), 3)'''
+        
     
     return frame,lines
 
