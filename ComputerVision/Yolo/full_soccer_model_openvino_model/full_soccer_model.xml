@@ -7931,7 +7931,7 @@
 		<framework>
 			<author value="Ultralytics" />
 			<batch value="1" />
-			<date value="2024-04-13T14:44:55.651765" />
+			<date value="2024-05-25T13:26:02.091890" />
 			<description value="Ultralytics full_soccer_model model trained on /kaggle/working/RhobansDetectionV2-5/data.yaml" />
 			<imgsz value="[640, 640]" />
 			<license value="AGPL-3.0 https://ultralytics.com/license" />
