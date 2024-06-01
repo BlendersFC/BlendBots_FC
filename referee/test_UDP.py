@@ -1,3 +1,4 @@
+import socket
 UDP_IP = "0.0.0.0"
 
 UDP_PORT = 3838
