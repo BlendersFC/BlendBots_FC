@@ -1,7 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+
 import rospy
-from referee_pkg.msg import referee
-import socket 
+from soccer_pkg.msg import referee
+import socket
+import struct 
 
 
 def main():
@@ -14,7 +16,7 @@ def main():
     	}
     	return submode.get(byte)
     	"""
-         *                0 = Robots should stay still, referee places the ball on the ground
+     *                0 = Robots should stay still, referee places the ball on the ground
      *                1 = Robots can place themselves toward the ball
      *                2 = Robots should stay still and referees ask to remove illegally positioned robots
     """
@@ -70,29 +72,34 @@ def main():
 
     sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  #new datagram socket IPv4 
     sock.bind((UDP_IP,UDP_PORT)) #associate socket with IP and port
-    rospy.loginfo(f"escuchando IP{UDP_IP} al puerto {UDP_PORT}")
+   # rospy.loginfo(f"escuchando IP{UDP_IP} al puerto {UDP_PORT}")
     referee_var= referee() #initialize referee variable
+    rospy.loginfo("Mensaje creado")
     while not rospy.is_shutdown():
         
         data, addr = sock.recvfrom(1024) #1024 bytes
+        rospy.loginfo("si funciona")
+        protocol1, protocol2, p_number, players_pt, g_type, state, first_h, ko_team, s_state, team_p, submode = struct.unpack('11B',data[4:15])
+        di_team, di_time1, di_time2, time1, time2, stime1, stime2 =struct.unpack('7B',data[17:24])
 	# pending Header
-        referee_var.protocol_version = data[4] | (data[5]<<8)
-        referee_var.packet_number = data[6]
-        referee_var.players_per_team = data[7]
-        referee_var.game_type = get_game_type(data[8])
-        referee_var.state = get_game_state(data[9])
-        referee_var.first_half = data[10]
-        referee_var.kick_off_team = data[11] 
-        referee_var.secondary_state=get_s_state(data[12])
-        referee_var.team_p = data[13] #team performing 
-        referee_var.submode = get_submode(data[14])
-        referee_var.drop_in_team = data[17] 
-        referee_var.drop_in_time = data[18] | (data[19]<<8)
-        referee_var.secs_remaining = data[20]|(data[21]<<8)
-        referee_var.secondary_time = data[22]|(data[23]<<8)
+        referee_var.protocol_version = protocol1 | (protocol2<<8)
+        referee_var.packet_number = p_number
+        referee_var.players_per_team = players_pt
+        referee_var.game_type = get_game_type(g_type)
+        referee_var.state = get_game_state(state)
+        referee_var.first_half = first_h
+        referee_var.kick_off_team = ko_team
+        referee_var.secondary_state=get_s_state(s_state)
+        referee_var.team_p = team_p #team performing 
+        referee_var.submode = get_submode(submode)
+        referee_var.drop_in_team = di_team
+        referee_var.drop_in_time = di_time1 | (time2<<8)
+        referee_var.secs_remaining = time1|(time2<<8)
+        referee_var.secondary_time = stime1|(stime2<<8)
 
 
         pub.publish(referee_var)
+        rospy.loginfo(referee_var.secs_remaining)
 
 
 
@@ -100,6 +107,3 @@ def main():
 
 if __name__ == '__main__':
     try:
-        main()
-    except rospy.ROSInterruptException:
-        pass
