@@ -273,6 +273,10 @@ int main(int argc, char **argv)
 
     if(ball_area > 19044){
     std::cout  << "PELOTAA" << std::endl;
+      if (contl>25 || contr>25){
+        contl = 0;
+        contr = 0;
+      }
       if (head_pan > -0.5235987 && fabs(ball_slope) > 30){
         contl += 1;
         if ((contl >= 10)&&(contl > (contr + 2))){
@@ -293,7 +297,7 @@ int main(int argc, char **argv)
             contl = 0;            
         }
       }else{
-        if (ball_slope <= 3){  //30°
+        if (ball_slope >= 5){  //30°
           contr += 1;
           if ((contr >= 12)&&(contr > (contl + 3))){
             std::cout  << "SALTAR DERECHA" << std::endl;
@@ -302,9 +306,9 @@ int main(int argc, char **argv)
             contr = 0;
             contl = 0;
           }
-        }else if (ball_slope >= -3){
+        }else if (ball_slope <= -5){
           contl += 1;
-          if ((contl >= 7)&&(contl > (contr + 2))){
+          if ((contl >= 12)&&(contl > (contr + 2))){
             std::cout  << "SALTAR IZQUIERDA" << std::endl;
             right_jump = false;
             left_jump = true;
