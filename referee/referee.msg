@@ -15,3 +15,22 @@ uint8 drop_in_team
 uint16 drop_in_time
 uint16 secs_remaining
 uint16 secondary_time
+
+#atributos del equipo en general
+uint8 team_n
+uint8 team_c
+uint8 score 
+uint8 p_shoot
+uint8 coach_s
+
+
+
+
+#atributos de cada robot 
+string penalty_1 
+uint8 time_p_1
+uint8 warnings_1
+uint8 ycards_1
+uint8 rcards_1
+uint8 gkeeper_1
+
