@@ -7,20 +7,27 @@ import struct
 
 
 def main():
+    #dictionary for penalty
+    def get_pen(byte):
+        pen = {
+            255:"unknown",
+            0:"none",
+            14:"substitute",
+            30:"pushing",
+            31:"ball_manipulation",
+            34:"pickup/incapable",
+            35:"service"
+        }
+        return pen.get(byte)
     #dictionary for submode
     def get_submode(byte):
     	submode = {
-    	0: "still",
-    	1: "prepare",
-    	2: "still_2",
+    	0: "still", # 0 = Robots should stay still, referee places the ball on the ground
+    	1: "prepare", #1 = Robots can place themselves toward the ball
+    	2: "still_2" #2 = Robots should stay still and referees ask to remove illegally positioned robots
     	}
-    	return submode.get(byte)
-    	"""
-     *                0 = Robots should stay still, referee places the ball on the ground
-     *                1 = Robots can place themselves toward the ball
-     *                2 = Robots should stay still and referees ask to remove illegally positioned robots
-    """
-    #dictionary for state	
+        return submode.get(byte)
+
     def get_game_state(byte):
         state = {
         -1: "Impossible",
@@ -73,33 +80,50 @@ def main():
     sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  #new datagram socket IPv4 
     sock.bind((UDP_IP,UDP_PORT)) #associate socket with IP and port
    # rospy.loginfo(f"escuchando IP{UDP_IP} al puerto {UDP_PORT}")
-    referee_var= referee() #initialize referee variable
+    r_var= referee() #initialize referee variable
     rospy.loginfo("Mensaje creado")
+
+
+    n=0 #variable para recorrer por cada jugador 0 es player1, 1 es player2...
+    teaminfo = data[24:29] 
+    playerinfo = data[290+n*6:296+n*6]
+
     while not rospy.is_shutdown():
         
         data, addr = sock.recvfrom(1024) #1024 bytes
         rospy.loginfo("si funciona")
-        protocol1, protocol2, p_number, players_pt, g_type, state, first_h, ko_team, s_state, team_p, submode = struct.unpack('11B',data[4:15])
-        di_team, di_time1, di_time2, time1, time2, stime1, stime2 =struct.unpack('7B',data[17:24])
-	# pending Header
-        referee_var.protocol_version = protocol1 | (protocol2<<8)
-        referee_var.packet_number = p_number
-        referee_var.players_per_team = players_pt
-        referee_var.game_type = get_game_type(g_type)
-        referee_var.state = get_game_state(state)
-        referee_var.first_half = first_h
-        referee_var.kick_off_team = ko_team
-        referee_var.secondary_state=get_s_state(s_state)
-        referee_var.team_p = team_p #team performing 
-        referee_var.submode = get_submode(submode)
-        referee_var.drop_in_team = di_team
-        referee_var.drop_in_time = di_time1 | (time2<<8)
-        referee_var.secs_remaining = time1|(time2<<8)
-        referee_var.secondary_time = stime1|(stime2<<8)
+        #first part
+        protocol1, protocol2, r_var.packet_number, r_var.players_per_team, g_type, state, r_var.first_half, r_var.kick_off_team, s_state, r_var.team_p, submode = struct.unpack('11B',data[4:15])
+        #second part
+        r_var.drop_in_team, di_time1, di_time2, time1, time2, stime1, stime2 = struct.unpack('7B',data[17:24])
+
+        if(r_var.first_half==1): #los bytes cambian en el cambio de cancha
+            teaminfo = data[24:29]
+            playerinfo = data[356+n*6:361+n*6]
+        else:
+            teaminfo = data[356:361]
+            playerinfo = data[622+n*6:628+n*6]
+
+        #team info 356 to 361 for b team
+        r_var.team_n, r_var.team_c, r_var.score, r_var.p_shoot, r_var.coach_s = struct.unpack('5B',teaminfo)
+        #player info 622+n*6:628 for b team 
+        penalty, r_var.time_p_1, r_var.warnings_1, r_var.ycards_1, r_var.rcards_1, r_var.gkeeper_1 = struct.unpack('6B',playerinfo)
 
 
-        pub.publish(referee_var)
-        rospy.loginfo(referee_var.secs_remaining)
+        #16 bits values and dictionaries 
+        r_var.protocol_version = protocol1 | (protocol2<<8)
+        r_var.game_type = get_game_type(g_type)
+        r_var.state = get_game_state(state)
+        r_var.secondary_state=get_s_state(s_state)
+        r_var.submode = get_submode(submode)
+        r_var.drop_in_time = di_time1 | (time2<<8)
+        r_var.secs_remaining = time1|(time2<<8)
+        r_var.secondary_time = stime1|(stime2<<8)
+        r_var.penalty_1=get_pen(penalty)
+
+
+        pub.publish(r_var)
+        rospy.loginfo(r_var.secs_remaining)
 
 
 
@@ -107,3 +131,4 @@ def main():
 
 if __name__ == '__main__':
     try:
+        main()
