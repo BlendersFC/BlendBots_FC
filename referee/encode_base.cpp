@@ -17,6 +17,10 @@
 #include "utils.hpp"
 
 
+int test;
+int test2;
+referee_pkg::OP3_player dato;
+
 // Create a new message which contains extensions
 robocup::humanoid::Message msg;
 
@@ -126,7 +130,7 @@ void encode(const std::string& msg_file){
     msg.mutable_timestamp()->set_nanos(nanos.count());
 
     // Set player details
-    msg.mutable_current_pose()->set_player_id(24);
+    msg.mutable_current_pose()->set_player_id(15);
     msg.mutable_current_pose()->set_team(robocup::humanoid::Team::BLUE);
     msg.mutable_current_pose()->mutable_position()->set_x(1.0f);
     msg.mutable_current_pose()->mutable_position()->set_y(3.0f);
@@ -179,7 +183,7 @@ void encode(const std::string& msg_file){
 
     // Set some others details
     robocup::humanoid::Robot* other = msg.add_others();
-    other->set_player_id(50);
+    other->set_player_id(20);
     other->set_team(robocup::humanoid::Team::BLUE);
     other->mutable_position()->set_x(1.0f);
     other->mutable_position()->set_y(-3.0f);
@@ -214,22 +218,28 @@ void encode(const std::string& msg_file){
 
 
 void decode(const std::string& msg_file) {
-     int test;
+
     // Open the extended message and parse it
     std::ifstream ifs(msg_file, std::ifstream::binary);
-
+    robocup::humanoid::Message r_msg;
+    robocup::humanoid::Robot* arabe = r_msg.add_others();
     if (ifs.is_open()) {
         // "Send" the message over the network and decode it
         std::stringstream stream;
         stream << ifs.rdbuf();
-        parse_message<robocup::humanoid::Message>(stream.str());
-    }
+        //parse_message<robocup::humanoid::Message>(stream.str());
+            if(r_msg.ParseFromString(stream.str()))
+	   {
+	    test=r_msg.mutable_current_pose()->player_id();
+	    test2 = arabe->player_id();
+	    std::cout<<test<<std::endl;
+	    std::cout<<test2<<std::endl;
+	    }
+	    }
     else {
         std::cerr << "Error al abrir el archivo: " << msg_file << std::endl;
     }
-    test=msg.mutable_current_pose()->player_id();
-    std::cout<<test<<std::endl;
-    
+    dato.id_teammate = test2;
 }
 
 
@@ -248,11 +258,15 @@ int main(int argc, char **argv) {
     
     ros::Publisher pub_op3;
     pub_op3 = nh.advertise<referee_pkg::OP3_player>("his_data",1); //publicar a si mismo lo que recibe de los demàs 
-    //encode("prueba1.pb");
+    encode("prueba1.pb");
+    //encode("/home/student/pb_msg/r2file.pb");
     //sendpb();
-    //decode("prueba1.pb");
+    decode("prueba1.pb");
     decode("/home/student/pb_msg/r2file.pb");
     //receive();
     //ROS
-    ros::spin();
+    while(ros::ok()){
+    pub_op3.publish(dato);
+    //ros::spin();
+    }
     }
