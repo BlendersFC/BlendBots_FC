@@ -19,7 +19,7 @@ packed_data = struct.pack('<4sBBBB', header, version, team, player, message)
 udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # Dirección y puerto del receptor
-server_address = ('localhost', 3939)
+server_address = ('127.0.0.1', 3939) #hay que cambiar la IP a la del árbitro de verdad
 
 while True:
     # Enviar los datos empaquetados
