@@ -70,14 +70,29 @@ def main():
     # Node
     rospy.init_node('game_control', anonymous=True)
     # publisher
-    pub = rospy.Publisher('r_data', referee, queue_size=10)
+    pub = rospy.Publisher('r_data', referee, queue_size=1)
     rate = rospy.Rate(10)  # (10 Hz)
     
     
-    UDP_IP = "0.0.0.0" #hearing all interfaces
-    UDP_PORT = 3838 #communication port
+    UDP_IP = "0.0.0.0" #hearing all interfaces, must be changed to referee IP
+    UDP_PORT = 3838 #communication port listen
+    UDP_PORTR = 3939 #return data port 
+
+    # Datos de cada jugador
+    header = b'RGrt'    # Header "RGrt"
+    version = 2         # Versión de la estructura de datos
+    team = 1            # Número de equipo
+    player = 5          # Número de jugador
+    message = 3      # Mensaje (0: GAMECONTROLLER_RETURN_MSG_ALIVE, 1: GAMECONTROLLER_RETURN_MSG_MAN_PENALISE, 2: GAMECONTROLLER_RETURN_MSG_MAN_UNPENALISE)
+
+
+    # Empaquetar los datos en formato binario utilizando struct
+    packed_data = struct.pack('<4sBBBB', header, version, team, player, message)
 
     sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  #new datagram socket IPv4 
+    sock_return = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    
+
     sock.bind((UDP_IP,UDP_PORT)) #associate socket with IP and port
    # rospy.loginfo(f"escuchando IP{UDP_IP} al puerto {UDP_PORT}")
     r_var= referee() #initialize referee variable
@@ -85,12 +100,13 @@ def main():
 
 
     n=0 #variable para recorrer por cada jugador 0 es player1, 1 es player2...
-    teaminfo = data[24:29] 
-    playerinfo = data[290+n*6:296+n*6]
+
 
     while not rospy.is_shutdown():
         
         data, addr = sock.recvfrom(1024) #1024 bytes
+        teaminfo = data[24:29] 
+        playerinfo = data[290+n*6:296+n*6]
         rospy.loginfo("si funciona")
         #first part
         protocol1, protocol2, r_var.packet_number, r_var.players_per_team, g_type, state, r_var.first_half, r_var.kick_off_team, s_state, r_var.team_p, submode = struct.unpack('11B',data[4:15])
@@ -99,7 +115,7 @@ def main():
 
         if(r_var.first_half==1): #los bytes cambian en el cambio de cancha
             teaminfo = data[24:29]
-            playerinfo = data[356+n*6:361+n*6]
+            playerinfo = data[290+n*6:296+n*6]
         else:
             teaminfo = data[356:361]
             playerinfo = data[622+n*6:628+n*6]
@@ -116,12 +132,12 @@ def main():
         r_var.state = get_game_state(state)
         r_var.secondary_state=get_s_state(s_state)
         r_var.submode = get_submode(submode)
-        r_var.drop_in_time = di_time1 | (time2<<8)
+        r_var.drop_in_time = di_time1 | (di_time2<<8)
         r_var.secs_remaining = time1|(time2<<8)
         r_var.secondary_time = stime1|(stime2<<8)
         r_var.penalty_1=get_pen(penalty)
 
-
+        sock_return.sendto(packed_data, (UDP_IP,UDP_PORTR))
         pub.publish(r_var)
         rospy.loginfo(r_var.secs_remaining)
 
@@ -130,5 +146,4 @@ def main():
 
 
 if __name__ == '__main__':
-    try:
-        main()
+    main()
