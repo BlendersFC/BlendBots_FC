@@ -12,8 +12,14 @@
 #include <unistd.h>
 
 #include "robocup.pb.h"
+#include <referee_pkg/referee.h>
+#include <referee_pkg/OP3_player.h>
 #include "utils.hpp"
 
+
+int test;
+int test2;
+referee_pkg::OP3_player dato;
 
 // Create a new message which contains extensions
 robocup::humanoid::Message msg;
@@ -113,7 +119,7 @@ void sendpb()
 }
 
 
-void encode(){
+void encode(const std::string& msg_file){
 
 
     // Set the transmission timestamp
@@ -124,7 +130,7 @@ void encode(){
     msg.mutable_timestamp()->set_nanos(nanos.count());
 
     // Set player details
-    msg.mutable_current_pose()->set_player_id(3);
+    msg.mutable_current_pose()->set_player_id(15);
     msg.mutable_current_pose()->set_team(robocup::humanoid::Team::BLUE);
     msg.mutable_current_pose()->mutable_position()->set_x(1.0f);
     msg.mutable_current_pose()->mutable_position()->set_y(3.0f);
@@ -177,7 +183,7 @@ void encode(){
 
     // Set some others details
     robocup::humanoid::Robot* other = msg.add_others();
-    other->set_player_id(2);
+    other->set_player_id(20);
     other->set_team(robocup::humanoid::Team::BLUE);
     other->mutable_position()->set_x(1.0f);
     other->mutable_position()->set_y(-3.0f);
@@ -192,44 +198,12 @@ void encode(){
     other->mutable_covariance()->mutable_z()->set_y(0.0f);
     other->mutable_covariance()->mutable_z()->set_z(2.0f);
 
-    other = msg.add_others();
-    other->set_player_id(1);
-    other->set_team(robocup::humanoid::Team::RED);
-    other->mutable_position()->set_x(4.5f);
-    other->mutable_position()->set_y(0.0f);
-    other->mutable_position()->set_z(M_PI);
-    other->mutable_covariance()->mutable_x()->set_x(1.0f);
-    other->mutable_covariance()->mutable_x()->set_y(0.0f);
-    other->mutable_covariance()->mutable_x()->set_z(0.0f);
-    other->mutable_covariance()->mutable_y()->set_x(0.0f);
-    other->mutable_covariance()->mutable_y()->set_y(1.0f);
-    other->mutable_covariance()->mutable_y()->set_z(0.0f);
-    other->mutable_covariance()->mutable_z()->set_x(0.0f);
-    other->mutable_covariance()->mutable_z()->set_y(0.0f);
-    other->mutable_covariance()->mutable_z()->set_z(1.0f);
-
-    other = msg.add_others();
-    other->set_player_id(0);
-    other->set_team(robocup::humanoid::Team::UNKNOWN_TEAM);
-    other->mutable_position()->set_x(4.0f);
-    other->mutable_position()->set_y(0.0f);
-    other->mutable_position()->set_z(M_PI);
-    other->mutable_covariance()->mutable_x()->set_x(1.0f);
-    other->mutable_covariance()->mutable_x()->set_y(0.0f);
-    other->mutable_covariance()->mutable_x()->set_z(0.0f);
-    other->mutable_covariance()->mutable_y()->set_x(0.0f);
-    other->mutable_covariance()->mutable_y()->set_y(1.0f);
-    other->mutable_covariance()->mutable_y()->set_z(0.0f);
-    other->mutable_covariance()->mutable_z()->set_x(0.0f);
-    other->mutable_covariance()->mutable_z()->set_y(0.0f);
-    other->mutable_covariance()->mutable_z()->set_z(1.0f);
-
     // ******************************
     // * Official message ends here *
     // ******************************
 
     // Dump serialised message to file
-    std::ofstream ofs("prueba1.pb", std::ofstream::binary);
+    std::ofstream ofs(msg_file, std::ofstream::binary);
     std::string string_msg;
     msg.SerializeToString(&string_msg);
     ofs.write(string_msg.data(), string_msg.size());
@@ -247,36 +221,52 @@ void decode(const std::string& msg_file) {
 
     // Open the extended message and parse it
     std::ifstream ifs(msg_file, std::ifstream::binary);
-
+    robocup::humanoid::Message r_msg;
+    robocup::humanoid::Robot* arabe = r_msg.add_others();
     if (ifs.is_open()) {
         // "Send" the message over the network and decode it
         std::stringstream stream;
         stream << ifs.rdbuf();
-        parse_message<robocup::humanoid::Message>(stream.str());
-    }
+        //parse_message<robocup::humanoid::Message>(stream.str());
+            if(r_msg.ParseFromString(stream.str()))
+	   {
+	    test=r_msg.mutable_current_pose()->player_id();
+	    test2 = arabe->player_id();
+	    std::cout<<test<<std::endl;
+	    std::cout<<test2<<std::endl;
+	    }
+	    }
     else {
         std::cerr << "Error al abrir el archivo: " << msg_file << std::endl;
     }
+    dato.id_teammate = test2;
 }
 
-/*
-void myinfoCB(){
+
+void myinfoCB(const referee_pkg::referee::ConstPtr& mymsg){
     asm("NOP");
+    //int test = mymsg->secs_remaining;
+    
 }
-*/
 int main(int argc, char **argv) {
     
     //ROS
-    ros::init(argc, argv, "mi_nodo_suscriptor");
+    ros::init(argc, argv, "referee_node");
     ros::NodeHandle nh;
-    //ros::Subscriber myinfo = nh.subscribe("referee",2,myinfoCB);
-
-    //encode();
+    ros::Subscriber sub_op3 = nh.subscribe("/r_data", 1, myinfoCB); //suscriptor a sì mismo para enviar a sus compañeros
+    ros:: Rate loop_rate(1);
+    
+    ros::Publisher pub_op3;
+    pub_op3 = nh.advertise<referee_pkg::OP3_player>("his_data",1); //publicar a si mismo lo que recibe de los demàs 
+    encode("prueba1.pb");
+    //encode("/home/student/pb_msg/r2file.pb");
     //sendpb();
-    //decode("/home/student/pb_msg/r2file.pb");
-    receive();
+    decode("prueba1.pb");
+    decode("/home/student/pb_msg/r2file.pb");
+    //receive();
     //ROS
-    ros::spin();
-
-
-}
+    while(ros::ok()){
+    pub_op3.publish(dato);
+    //ros::spin();
+    }
+    }
