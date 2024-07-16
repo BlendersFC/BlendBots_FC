@@ -56,6 +56,8 @@ void callbackSearchBall(const std_msgs::Bool& msg);
 void callbackBall(const geometry_msgs::Point& msg);
 void callbackSlope(const std_msgs::Float64& msg);
 
+void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
+
 double rest_inc = 0.2181;
 //rest_inc =0.2618 15°
 double rest_inc_giro = 0.08726;
@@ -146,6 +148,7 @@ ros::Subscriber position_sub;
 ros::Subscriber error_sub;
 ros::Subscriber search_ball_sub;
 ros::Subscriber find_ball_sub;
+ros::Subscriber button_sub;
 ros::Subscriber turnNsearch_sub;
 
 ros::ServiceClient set_joint_module_client;
@@ -161,6 +164,7 @@ bool ball = false;
 bool turnNsearch = false;
 bool search_ball = false;
 bool setup_kick_pos = false;
+bool start_button_flag = false;
 
 //node main
 int main(int argc, char **argv)
@@ -175,16 +179,31 @@ int main(int argc, char **argv)
 
   //subscribers
   read_joint_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/present_joint_states",1, callbackJointStates);
-  position_sub = nh.subscribe("/position", 5, callbackPosition);
-  error_sub = nh.subscribe("/error", 5, callbackError);
+  position_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/position", 5, callbackPosition);
+  error_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/error", 5, callbackError);
   search_ball_sub = nh.subscribe("/search_ball", 5, callbackSearchBall);
   ball_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/BallCenter", 1, callbackBall);
   slope_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/Slope", 1, callbackSlope);
   imu_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/open_cr/imu", 1, callbackImu);
   find_ball_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/find_ball", 5, callbackfindBall);
-  turnNsearch_sub = nh.subscribe("/turnNsearch", 5, callbackTurn);
+  button_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/open_cr/button", 1, buttonHandlerCallback);
+  turnNsearch_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/turnNsearch", 5, callbackTurn);
   
   std::string command;
+  std::ifstream myfile ("/home/robotis/blenders_ws/src/soccer_pkg/data/Pararse.txt");
+  if (myfile.is_open()) {
+    std::cout << "El archivo se abrió";
+
+    for (int idx2 = 0; idx2 < row2; idx2++){
+      for (int idy2 = 0; idy2 < col2; idy2++){
+        myfile >> posiciones2[idx2][idy2];
+      }
+      
+    }
+    myfile.close();
+  } else {
+    std::cout << "El archivo no abrió";
+  }
 
   //publishers
   init_pose_pub = nh.advertise<std_msgs::String>("/robotis_" + std::to_string(robot_id) + "/base/ini_pose", 0);
@@ -228,7 +247,7 @@ int main(int argc, char **argv)
   write_msg.header.stamp = ros::Time::now();
   
   //pararse en posición para caminar
-  ros::Duration(1).sleep();
+  ros::Duration(5).sleep();
   goAction(9);
   ros::Rate loop_rate_pararse(60);
   ros::Duration(5.0).sleep();
@@ -242,6 +261,15 @@ int main(int argc, char **argv)
     ros::spinOnce();
     ros::Time prev_time_ = ros::Time::now();
     std::cout  << "ball area: " << ball_area << std::endl;
+
+    if (start_button_flag == 1){
+      asm("NOP");
+      std::cout  << "MUEVETE" << std::endl; 
+    }
+    else {
+      std::cout  << "nada" << std::endl; 
+      continue;
+    }
     
     
     if(!ball){
@@ -491,6 +519,23 @@ int main(int argc, char **argv)
   }
 	return 0;
 }
+
+
+void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
+{
+
+  // in the middle of playing demo
+  if (msg->data == "mode")
+    {
+      // go to mode selection status
+      start_button_flag = 1;
+    }
+  else if (msg->data == "start"){
+    start_button_flag = 0;
+  }
+}
+
+
 
 void readyToDemo()
 {
