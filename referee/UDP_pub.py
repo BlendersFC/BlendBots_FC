@@ -24,18 +24,18 @@ def main():
     	submode = {
     	0: "still", # 0 = Robots should stay still, referee places the ball on the ground
     	1: "prepare", #1 = Robots can place themselves toward the ball
-    	2: "still_2" #2 = Robots should stay still and referees ask to remove illegally positioned robots
+    	2: "still" #2 = Robots should stay still and referees ask to remove illegally positioned robots
     	}
         return submode.get(byte)
 
     def get_game_state(byte):
         state = {
-        -1: "Impossible",
-        0: "Initial",
+        -1: "quieto",
+        0: "quieto",
         1: "Ready",
-        2: "Set",
+        2: "quieto",
         3: "Playing",
-        4: "Finished"
+        4: "quieto"
         }
         return state.get(byte, "Impossible")
 
@@ -96,6 +96,8 @@ def main():
     sock.bind((UDP_IP,UDP_PORT)) #associate socket with IP and port
    # rospy.loginfo(f"escuchando IP{UDP_IP} al puerto {UDP_PORT}")
     r_var= referee() #initialize referee variable
+    r_var.I=0
+    r_var.important = "quieto"
     rospy.loginfo("Mensaje creado")
 
 
@@ -136,6 +138,21 @@ def main():
         r_var.secs_remaining = time1|(time2<<8)
         r_var.secondary_time = stime1|(stime2<<8)
         r_var.penalty_1=get_pen(penalty)
+        if (r_var.state == "quieto") | (r_var.rcards_1 == 1) | (r_var.time_p_1 != 0) | (r_var.secondary_state == "Timeout") | ((r_var.submode == "still") & (r_var.secondary_state !="Normal")):
+             r_var.important = "quieto"
+             r_var.I = 0
+        if (r_var.state == "Ready"):
+            r_var.important = "acomodate"
+            r_var.I = 1
+        if (r_var.state == "Playing") & (r_var.secondary_state == "Normal") & (r_var.rcards_1 == 0) & (r_var.time_p_1 == 0) :
+            r_var.important = "playing"
+            r_var.I = 2
+        if (r_var.secondary_state != "Normal") & (r_var.team_p == 10) & (r_var.submode != "still"):
+            r_var.important = "acercate"
+            r_var.I = 3
+        if (r_var.secondary_state != "Normal") & (r_var.team_p != 10) & (r_var.submode != "still"):
+            r_var.important = "alejate"
+            r_var.I = 4
 
         sock_return.sendto(packed_data, (UDP_IP,UDP_PORTR))
         pub.publish(r_var)
