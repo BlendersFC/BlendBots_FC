@@ -34,3 +34,6 @@ uint8 ycards_1
 uint8 rcards_1
 uint8 gkeeper_1
 
+#atributos importantes
+string important
+uint8 I
