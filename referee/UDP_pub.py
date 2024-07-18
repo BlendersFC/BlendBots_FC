@@ -74,7 +74,7 @@ def main():
     rate = rospy.Rate(10)  # (10 Hz)
     
     
-    UDP_IP = "0.0.0.0" #hearing all interfaces, must be changed to referee IP
+    UDP_IP = "192.168.0.2" #hearing referee IP
     UDP_PORT = 3838 #communication port listen
     UDP_PORTR = 3939 #return data port 
 
