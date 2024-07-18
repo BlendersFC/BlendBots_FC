@@ -81,9 +81,9 @@ def main():
     # Datos de cada jugador
     header = b'RGrt'    # Header "RGrt"
     version = 2         # Versión de la estructura de datos
-    team = 1            # Número de equipo
-    player = 5          # Número de jugador
-    message = 3      # Mensaje (0: GAMECONTROLLER_RETURN_MSG_ALIVE, 1: GAMECONTROLLER_RETURN_MSG_MAN_PENALISE, 2: GAMECONTROLLER_RETURN_MSG_MAN_UNPENALISE)
+    team = 10           # Número de equipo
+    player = 1        # Número de jugador
+    message = 2      # Mensaje (0: GAMECONTROLLER_RETURN_MSG_ALIVE, 1: GAMECONTROLLER_RETURN_MSG_MAN_PENALISE, 2: GAMECONTROLLER_RETURN_MSG_MAN_UNPENALISE)3goalkeeper
 
 
     # Empaquetar los datos en formato binario utilizando struct
