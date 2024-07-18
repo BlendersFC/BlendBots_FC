@@ -170,35 +170,36 @@ int main(int argc, char **argv)
 
   int robot_id;
   nh.param<int>("robot_id", robot_id, 0);
-
   //subscribers
-  read_joint_sub = nh.subscribe("/present_joint_states",1, callbackJointStates);
-  position_sub = nh.subscribe("/position", 5, callbackPosition);
-  error_sub = nh.subscribe("/error", 5, callbackError);
-  search_ball_sub = nh.subscribe("/search_ball", 5, callbackSearchBall);
-  ball_sub = nh.subscribe("/BallCenter", 1, callbackBall);
-  slope_sub = nh.subscribe("/Slope", 1, callbackSlope);
-  imu_sub = nh.subscribe("/robotis/open_cr/imu", 1, callbackImu);
-  find_ball_sub = nh.subscribe("/find_ball", 5, callbackfindBall);
-  turnNsearch_sub = nh.subscribe("/turnNsearch", 5, callbackTurn);
+  read_joint_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/present_joint_states",1, callbackJointStates);
+  position_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/position", 5, callbackPosition);
+  error_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/error", 5, callbackError);
+  search_ball_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/search_ball", 5, callbackSearchBall);
+  imu_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/open_cr/imu", 1, callbackImu);
+  find_ball_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/find_ball", 5, callbackfindBall);
+  turnNsearch_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/turnNsearch", 5, callbackTurn);
+  ball_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/BallCenter", 1, callbackBall);
+  slope_sub = nh.subscribe("/robotis_" + std::to_string(robot_id) + "/Slope", 1, callbackSlope);
   
   std::string command;
   
   //publishers
-  init_pose_pub = nh.advertise<std_msgs::String>("/robotis/base/ini_pose", 0);
-  dxl_torque_pub = nh.advertise<std_msgs::String>("/robotis/dxl_torque", 0);
-  write_head_joint_pub = nh.advertise<sensor_msgs::JointState>("/robotis/head_control/set_joint_states", 0);
-  write_joint_pub = nh.advertise<sensor_msgs::JointState>("/robotis/set_joint_states", 0);
-  action_pose_pub = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
-  walk_command_pub = nh.advertise<std_msgs::String>("/robotis/walking/command", 0);
-  set_walking_param_pub = nh.advertise<op3_walking_module_msgs::WalkingParam>("/robotis/walking/set_params", 0);
-  reset_body_pub = nh.advertise<std_msgs::Bool>("/robotis/online_walking/reset_body", 0);
-  scan_command = nh.advertise<std_msgs::String>("/robotis/head_control/scan_command", 0);
+  init_pose_pub = nh.advertise<std_msgs::String>("/robotis_" + std::to_string(robot_id) + "/base/ini_pose", 0);
+  dxl_torque_pub = nh.advertise<std_msgs::String>("/robotis_" + std::to_string(robot_id) + "/dxl_torque", 0);
+  write_head_joint_pub = nh.advertise<sensor_msgs::JointState>("/robotis_" + std::to_string(robot_id) + "/head_control/set_joint_states", 0);
+  write_joint_pub = nh.advertise<sensor_msgs::JointState>("/robotis_" + std::to_string(robot_id) + "/set_joint_states", 0);
+  vision_case_pub = nh.advertise<std_msgs::Bool>("/robotis_" + std::to_string(robot_id) + "/vision_case", 1000);
+  action_pose_pub = nh.advertise<std_msgs::Int32>("/robotis_" + std::to_string(robot_id) + "/action/page_num", 0);
+  walk_command_pub = nh.advertise<std_msgs::String>("/robotis_" + std::to_string(robot_id) + "/walking/command", 0);
+  set_walking_param_pub = nh.advertise<op3_walking_module_msgs::WalkingParam>("/robotis_" + std::to_string(robot_id) + "/walking/set_params", 0);
+  reset_body_pub = nh.advertise<std_msgs::Bool>("/robotis_" + std::to_string(robot_id) + "/online_walking/reset_body", 0);
+  scan_command = nh.advertise<std_msgs::String>("/robotis_" + std::to_string(robot_id) + "/head_control/scan_command", 0);
 
   //services
-  set_joint_module_client = nh.serviceClient<robotis_controller_msgs::SetModule>("/robotis/set_present_ctrl_modules");
-  is_running_client = nh.serviceClient<op3_action_module_msgs::IsRunning>("/robotis/action/is_running");
-  get_param_client = nh.serviceClient<op3_walking_module_msgs::GetWalkingParam>("/robotis/walking/get_params");
+  set_joint_module_client = nh.serviceClient<robotis_controller_msgs::SetModule>("/robotis_" + std::to_string(robot_id) + "/set_present_ctrl_modules");
+  is_running_client = nh.serviceClient<op3_action_module_msgs::IsRunning>("/robotis_" + std::to_string(robot_id) + "/action/is_running");
+  get_param_client = nh.serviceClient<op3_walking_module_msgs::GetWalkingParam>("/robotis_" + std::to_string(robot_id) + "/walking/get_params");
+  //get_joint_client = nh.serviceClient<op3_online_walking_module_msgs::GetJointPose>("robotis/online_walking/get_joint_pose");
 
   ros::start();
 
@@ -249,7 +250,7 @@ int main(int argc, char **argv)
             write_msg.name.push_back("head_pan");
             write_msg.position.push_back(head_pan + positionx);
             write_msg.name.push_back("head_tilt");
-            write_msg.position.push_back(head_tilt + positiony);
+            write_msg.position.push_back(0.5);
             write_head_joint_pub.publish(write_msg);
         }else{
             if (distance_to_ball < 0.43 && distance_to_ball != 0.0){
@@ -258,7 +259,7 @@ int main(int argc, char **argv)
             write_msg.name.push_back("head_pan");
             write_msg.position.push_back(positionx);
             write_msg.name.push_back("head_tilt");
-            write_msg.position.push_back(positiony);
+            write_msg.position.push_back(0.5);
             write_head_joint_pub.publish(write_msg);
         }
 
