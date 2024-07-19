@@ -79,7 +79,8 @@ def main():
     # Node
     rospy.init_node('game_control', anonymous=True)
     # publisher
-    pub = rospy.Publisher('r_data', referee, queue_size=1)
+    robot_id = rospy.get_param('robot_id', 0)
+    pub = rospy.Publisher(f'robotis_{robot_id}/r_data', referee, queue_size=1)
     rate = rospy.Rate(10)  # (10 Hz)
     
     
