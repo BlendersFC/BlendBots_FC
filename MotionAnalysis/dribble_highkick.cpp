@@ -231,94 +231,44 @@ int main(int argc, char **argv)
 
   //wait for starting of op3_manager
   std::string manager_name = "/op3_manager";
-  while (ros::ok())
-  {
+  while (ros::ok()) {
     ros::Duration(1.0).sleep();
 
-    if (checkManagerRunning(manager_name) == true)
-    {
-      break;
-      ROS_INFO_COND(DEBUG_PRINT, "Succeed to connect");
+    if (checkManagerRunning(manager_name) == true) {
+    break;
+    ROS_INFO_COND(DEBUG_PRINT, "Succeed to connect");
     }
     ROS_WARN("Waiting for op3 manager");
-  }
+  } 
 
   readyToDemo();
+  ros::Duration(5.0).sleep();
+
+  setModule("head_control_module");
+  head_angle_msg.name.push_back("head_pan");
+  head_angle_msg.position.push_back(0);
+  head_angle_msg.name.push_back("head_tilt");
+  head_angle_msg.position.push_back(0);
+
+  write_head_joint_pub.publish(head_angle_msg);
+
+  while (ros::ok()) {
+    ros::spinOnce();
+    if (start_button_flag == 1){
+      asm("NOP");
+      std::cout  << "MUEVETE" << std::endl;
+      break;
+    } else {
+      std::cout  << "nada" << std::endl; 
+      continue;
+    }
+  }
 
   //node loop
   sensor_msgs::JointState write_msg;
   write_msg.header.stamp = ros::Time::now();
-  
-  //pararse en posición para caminar
-  ros::Duration(1).sleep();
-  ros::Rate loop_rate_pararse(60);
-  
-  /*for (int fila2=0; fila2<row2; fila2++)
-  {
-    write_msg.name.push_back("r_ank_pitch");
-    write_msg.position.push_back(posiciones2[fila2][0]);
-    write_msg.name.push_back("r_knee");
-    write_msg.position.push_back(posiciones2[fila2][1]);
-    write_msg.name.push_back("r_hip_pitch");
-    write_msg.position.push_back(posiciones2[fila2][2] + rest_inc);
-    write_msg.name.push_back("l_ank_pitch");
-    write_msg.position.push_back(posiciones2[fila2][3]);
-    write_msg.name.push_back("l_knee");
-    write_msg.position.push_back(posiciones2[fila2][4]);
-    write_msg.name.push_back("l_hip_pitch");
-    write_msg.position.push_back(posiciones2[fila2][5] - rest_inc);
-    write_joint_pub.publish(write_msg);
-      
-    loop_rate_pararse.sleep();
-  }
-  
- //////////////////////////////////////////////// acomodo de pies ////////////////////////////////////////////////
-  ros::Duration(1).sleep();
-  write_msg.name.push_back("l_hip_yaw");
-  write_msg.position.push_back(-0.0873);
-  write_msg.name.push_back("r_hip_yaw");
-  write_msg.position.push_back(0.0873);
-  write_joint_pub.publish(write_msg);
-    
-  ros::Duration(1).sleep();
-  write_msg.name.push_back("l_hip_roll");
-  write_msg.position.push_back(-0.0873);
-  write_msg.name.push_back("r_hip_roll");
-  write_msg.position.push_back(0.0873);
-  write_msg.name.push_back("l_ank_roll");
-  write_msg.position.push_back(-0.0873);
-  write_msg.name.push_back("r_ank_roll");
-  write_msg.position.push_back(0.0873);
-  write_joint_pub.publish(write_msg);
-
- //////////////////////////////////////////////// loop ////////////////////////////////////////////////
-
-  while (ros::ok())
-  {
-	ros::spinOnce();
-	ros::Rate loop_rate(SPIN_RATE);
-	
-	setModule("head_control_module");
-
-        write_msg.name.push_back("head_pan");
-        write_msg.position.push_back(positionx);
-        write_msg.name.push_back("head_tilt");
-        write_msg.position.push_back(positiony);
-        write_head_joint_pub.publish(write_msg);
-
-	//std::string command = "start";
-	//goWalk(command);
-	/*getWalkingParam();
-	setWalkingParam(0.02, 0, -0.0872664600611, true);
-	std_msgs::String command_msg;
-	command_msg.data = "start";
-	walk_command_pub.publish(command_msg);
-	
-	ros::Duration(3.0).sleep();
-	command = "stop";
-	goWalk(command);
-	ros::Duration(3.0).sleep();
-  }*/
+  ros::Time prev_time = ros::Time::now();
+  ros::Time prev_time_walk = ros::Time::now();
   
   goAction(9);
   ros::Time prev_time_ = ros::Time::now();
@@ -327,18 +277,6 @@ int main(int argc, char **argv)
     ros::Rate loop_rate(SPIN_RATE);
     ros::spinOnce();
     ros::Duration(5.0).sleep();
-
-    if (start_button_flag == 1){
-      asm("NOP");
-      std::cout  << "MUEVETE" << std::endl; 
-    }
-    else {
-      std::cout  << "nada" << std::endl; 
-      ros::Duration(2.0).sleep();
-      continue;
-    }
-
-
 
     /*if (ball){
       turn2search()
@@ -366,18 +304,18 @@ int main(int argc, char **argv)
     	setModule("head_control_module");
       if (!search_ball){
         write_msg.name.push_back("head_pan");
-        write_msg.position.push_back(head_pan + positionx);
+        write_msg.position.push_back(0.5);
         write_msg.name.push_back("head_tilt");
-        write_msg.position.push_back(head_tilt + positiony);
+        write_msg.position.push_back(0.5);
         write_head_joint_pub.publish(write_msg);
       }else{
         if (distance_to_ball < 0.43 && distance_to_ball != 0.0){
           positiony -= 0.17;
         }
         write_msg.name.push_back("head_pan");
-        write_msg.position.push_back(positionx);
+        write_msg.position.push_back(0.5);
         write_msg.name.push_back("head_tilt");
-        write_msg.position.push_back(positiony);
+        write_msg.position.push_back(0.5);
         write_head_joint_pub.publish(write_msg);
       }
     }
